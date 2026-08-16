@@ -1,0 +1,42 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 16 * * *' # 每天 UTC 16:00（北京时间 0 点）自动同步
+  workflow_dispatch: # 允许手动触发
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync with upstream master
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0 # 需要完整历史做 merge
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/wangwangit/SubsTracker.git
+          git fetch upstream master
+
+      - name: Merge upstream master
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git merge --no-edit upstream/master
+          echo "HEAD_CHANGED=$([ "$(git rev-parse HEAD)" != "${{ github.sha }}" ] && echo true || echo false)" >> "$GITHUB_ENV"
+
+      - name: Push to origin master
+        run: git push origin master
+
+      # GITHUB_TOKEN 的 push 不会触发 Deploy 的 push 事件，需显式 dispatch
+      - name: Trigger Deploy
+        if: env.HEAD_CHANGED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref master
