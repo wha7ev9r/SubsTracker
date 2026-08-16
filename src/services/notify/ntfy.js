@@ -17,8 +17,16 @@ export const ntfyChannel = {
   name: 'ntfy',
 
   validateConfig(config) {
-    if (!config.NTFY_TOPIC || !String(config.NTFY_TOPIC).trim()) {
+    const topic = String(config.NTFY_TOPIC || '').trim();
+    if (!topic) {
       return { ok: false, error: '缺少 NTFY_TOPIC' };
+    }
+    // ntfy 主题名只允许字母、数字、下划线、短横线，最长 64 字符（官方规则）
+    if (topic.length > 64 || !/^[-_A-Za-z0-9]+$/.test(topic)) {
+      return {
+        ok: false,
+        error: 'NTFY_TOPIC 只能包含字母、数字、下划线、短横线且不超过 64 字符，例如 substracker-alerts-9f3k2'
+      };
     }
     return { ok: true };
   },
@@ -28,7 +36,7 @@ export const ntfyChannel = {
     if (!v.ok) return fail('ntfy', v.error || '配置无效');
 
     const server = String(config.NTFY_SERVER || 'https://ntfy.sh').replace(/\/+$/, '');
-    const topic = String(config.NTFY_TOPIC).trim().replace(/^\/+/, '');
+    const topic = String(config.NTFY_TOPIC).trim();
     const url = `${server}/${encodeURIComponent(topic)}`;
 
     /** @type {Record<string, string>} */

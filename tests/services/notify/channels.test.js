@@ -341,6 +341,28 @@ describe('ntfyChannel', () => {
     expect(ntfyChannel.validateConfig({}).ok).toBe(false);
   });
 
+  it('validateConfig：非法主题名失败（中文/空格/点/超长）', () => {
+    for (const bad of ['我的订阅', 'my topic', 'my.topic', 'x'.repeat(65)]) {
+      const r = ntfyChannel.validateConfig({ NTFY_TOPIC: bad });
+      expect(r.ok).toBe(false);
+      expect(r.error).toContain('NTFY_TOPIC');
+    }
+  });
+
+  it('validateConfig：合法主题名通过', () => {
+    const r = ntfyChannel.validateConfig({ NTFY_TOPIC: 'substracker-alerts-9f3k2' });
+    expect(r.ok).toBe(true);
+  });
+
+  it('validateConfig：恰好 64 字符通过、65 字符失败', () => {
+    expect(ntfyChannel.validateConfig({ NTFY_TOPIC: 'a'.repeat(64) }).ok).toBe(true);
+    expect(ntfyChannel.validateConfig({ NTFY_TOPIC: 'a'.repeat(65) }).ok).toBe(false);
+  });
+
+  it('validateConfig：前后空格先 trim 再校验', () => {
+    expect(ntfyChannel.validateConfig({ NTFY_TOPIC: '  substracker-alerts-9f3k2  ' }).ok).toBe(true);
+  });
+
   it('send 成功路径', async () => {
     const original = globalThis.fetch;
     globalThis.fetch = async (url, init) => {
