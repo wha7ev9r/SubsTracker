@@ -1,0 +1,32 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 16 * * *' # 每天 UTC 16:00（北京时间 0 点）自动同步
+  workflow_dispatch: # 允许手动触发
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync with upstream master
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0 # 需要完整历史做 merge
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/wangwangit/SubsTracker.git
+          git fetch upstream master
+
+      - name: Merge upstream master
+        run: |
+          git merge --no-edit upstream/master
+
+      - name: Push to origin master
+        run: git push origin master
