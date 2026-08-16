@@ -9,7 +9,7 @@ import { sendBarkNotification } from '../../services/notify/bark.js';
 import { sendGotifyNotification } from '../../services/notify/gotify.js';
 import { sendServerChanNotification } from '../../services/notify/serverchan.js';
 import { sendPushPlusNotification } from '../../services/notify/pushplus.js';
-import { sendNtfyNotification } from '../../services/notify/ntfy.js';
+import { ntfyChannel } from '../../services/notify/ntfy.js';
 
 async function handleTestNotification(request, env) {
   try {
@@ -178,8 +178,14 @@ async function handleTestNotification(request, env) {
       };
       const title = '测试通知';
       const content = '这是一条测试通知，用于验证 ntfy 通知功能是否正常工作。\n\n发送时间: ' + formatBeijingTime();
-      success = await sendNtfyNotification(title, content, testConfig);
-      message = success ? 'ntfy 通知发送成功' : 'ntfy 通知发送失败，请检查配置';
+      const r = await ntfyChannel.send({ title, content }, testConfig);
+      success = r.success;
+      if (r.success) {
+        message = 'ntfy 通知发送成功';
+      } else {
+        const detail = r.raw ? `（${JSON.stringify(r.raw).slice(0, 300)}）` : '';
+        message = `ntfy 通知发送失败: ${r.error || '未知错误'}${detail}`;
+      }
     }
 
     return new Response(
