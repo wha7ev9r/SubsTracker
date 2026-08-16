@@ -26,7 +26,17 @@ jobs:
 
       - name: Merge upstream master
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git merge --no-edit upstream/master
+          echo "HEAD_CHANGED=$([ "$(git rev-parse HEAD)" != "${{ github.sha }}" ] && echo true || echo false)" >> "$GITHUB_ENV"
 
       - name: Push to origin master
         run: git push origin master
+
+      # GITHUB_TOKEN 的 push 不会触发 Deploy 的 push 事件，需显式 dispatch
+      - name: Trigger Deploy
+        if: env.HEAD_CHANGED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref master
