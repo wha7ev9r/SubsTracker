@@ -36,7 +36,7 @@ export const ntfyChannel = {
     if (!v.ok) return fail('ntfy', v.error || '配置无效');
 
     const server = String(config.NTFY_SERVER || 'https://ntfy.sh').replace(/\/+$/, '');
-    const topic = String(config.NTFY_TOPIC).trim().replace(/^\/+/, '');
+    const topic = String(config.NTFY_TOPIC).trim();
     const url = `${server}/${encodeURIComponent(topic)}`;
 
     /** @type {Record<string, string>} */

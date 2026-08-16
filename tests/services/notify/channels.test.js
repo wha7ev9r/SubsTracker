@@ -354,6 +354,15 @@ describe('ntfyChannel', () => {
     expect(r.ok).toBe(true);
   });
 
+  it('validateConfig：恰好 64 字符通过、65 字符失败', () => {
+    expect(ntfyChannel.validateConfig({ NTFY_TOPIC: 'a'.repeat(64) }).ok).toBe(true);
+    expect(ntfyChannel.validateConfig({ NTFY_TOPIC: 'a'.repeat(65) }).ok).toBe(false);
+  });
+
+  it('validateConfig：前后空格先 trim 再校验', () => {
+    expect(ntfyChannel.validateConfig({ NTFY_TOPIC: '  substracker-alerts-9f3k2  ' }).ok).toBe(true);
+  });
+
   it('send 成功路径', async () => {
     const original = globalThis.fetch;
     globalThis.fetch = async (url, init) => {
