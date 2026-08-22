@@ -2,12 +2,7 @@ name = "subscription-manager"
 main = "src/index.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
-
-[env.production]
-name = "subscription-manager"
-
-[env.staging]
-name = "subscription-manager-staging"
+preview_urls = false
 
 # KV 命名空间配置（默认模板不预设固定 ID，运行 npm run setup 自动生成）
 
